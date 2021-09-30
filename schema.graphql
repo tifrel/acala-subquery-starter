@@ -9,6 +9,6 @@ type TokenTransfer @entity {
 type Account @entity {
   id: ID!
   publicAddress: String! @index(unique: true)
-  sentTransfers: [TokenTransfer!]!
-  recvTransfers: [TokenTransfer!]!
+  sentTransfers: [TokenTransfer!]! @derivedFrom(field: "from")
+  recvTransfers: [TokenTransfer!]! @derivedFrom(field: "to")
 }
