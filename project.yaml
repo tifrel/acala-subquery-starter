@@ -3,7 +3,7 @@ description: ''
 repository: ''
 schema: ./schema.graphql
 network:
-  endpoint: wss://acala-mandala.api.onfinality.io/public-ws
+  endpoint: wss://karura.api.onfinality.io/public-ws
   typesAlias: &ref_57
     stakingPool:
       Phase: StakingPoolPhase
@@ -3315,7 +3315,7 @@ network:
 dataSources:
   - name: main
     kind: substrate/Runtime
-    startBlock: 100000
+    startBlock: 650000
     mapping:
       handlers:
         - handler: handleCurrencyTransferEvent

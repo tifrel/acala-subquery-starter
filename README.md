@@ -1,39 +1,8 @@
-# Acala Subquery Starter
+Trying to access the Karura network yields following lines in the docker output:
 
-This starter project will get you started with everything you need to begin building a custom Subquery project for Acala/Karura. For more general information on Subquery check out their docs [here](https://doc.subquery.network/).
-
-## Setup
-
-Make sure you have the pre-requisite software installed by following the directions [here](https://doc.subquery.network/quickstart/helloworld-localhost/#pre-requisites).
-
-
-### Building/Starting the Project
-
-1. Clone this repo and install the dependencies by running `yarn` in the project directory
-2. Update the custom type definitions for Acala, Karura, and Mandala in the `project.yaml` by running `yarn update-types`
-3. Generate the schema types for use in your handlers by running `yarn codegen`
-4. Build the project by running `yarn build`
-5. Start the prooject by running `docker-compose pull && docker-compose up`
-
-### Query the project
-
-Open your browser and head to `http://localhost:3000`.
-
-Write the following query into the query editor and press play. If you see data pop up on the right side then you're all set up! 
-
-```graphql
-query {
-  tokenTransfers(first: 10) {
-    nodes {
-      to
-      from
-      amount
-      token
-    }
-  }
-}
+```log
+subquery-node_1   | 2021-09-30 17:01:15        REGISTRY: Unable to resolve type CurrencyId, it will fail on construction
+subquery-node_1   | 2021-09-30 17:01:15        API/INIT: Error: FATAL: Unable to initialize the API: createType(CurrencyId):: DoNotConstruct: Cannot construct unknown type CurrencyId
+subquery-node_1   |     at EventEmitter.value (/usr/local/lib/node_modules/@subql/node/node_modules/@polkadot/api/base/Init.cjs:82:25)
+subquery-node_1   |     at processTicksAndRejections (internal/process/task_queues.js:95:5)
 ```
-
-## Next Steps
-
-This project is just to get you started building with Subquery for Acala/Karura. You'll want to read through the [Subquery docs](https://doc.subquery.network/) for more information on how to build out your own custom handlers.
