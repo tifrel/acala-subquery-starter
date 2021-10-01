@@ -6,9 +6,14 @@ async function getAccount(address: string): Promise<Account> {
   let account = await Account.get(address);
   if (!account) {
     account = new Account(address);
-    account.publicAddress = address;
-    account.sentTransfersId = [];
-    account.recvTransfersId = [];
+
+    account.sentKarMean = BigInt(0);
+    account.sentKarTotal = BigInt(0);
+    account.sentKarMedian = BigInt(0);
+    account.recvKarMean = BigInt(0);
+    account.recvKarTotal = BigInt(0);
+    account.recvKarMedian = BigInt(0);
+    await account.save();
   }
   return account;
 }
@@ -18,24 +23,66 @@ export async function handleCurrencyTransferEvent(
 ): Promise<void> {
   const {
     event: {
-      data: [token, from, to, amount],
+      data: [tokenCodec, fromCodec, toCodec, amountCodec],
     },
   } = event;
-  //Retrieve the record by its ID
+
   const txId = `${event.block.block.header.number.toNumber()}-${event.idx}`;
+  const token = (JSON.parse(tokenCodec.toString()) as { token?: string }).token;
+  const amount = BigInt(amountCodec.toString());
+
+  // this guards against crashing subql
+  if (!token) return;
+
   const transfer = new TokenTransfer(txId);
-  transfer.token = token.toString();
-  transfer.from = from.toString();
-  transfer.to = to.toString();
-  transfer.amount = BigInt(amount.toString());
+  const fromAccount = await getAccount(fromCodec.toString());
+  const toAccount = await getAccount(toCodec.toString());
+
+  transfer.token = token;
+  transfer.fromId = fromAccount.id;
+  transfer.toId = toAccount.id;
+  transfer.amount = amount;
   await transfer.save();
 
-  const fromAccount = await getAccount(from.toString());
-  const toAccount = await getAccount(to.toString());
+  // KAR/ACA stats as per task (ACA because I can only connect to Mandala)
+  if (token !== "ACA") return;
 
-  fromAccount.sentTransfersId.push(txId);
-  toAccount.recvTransfersId.push(txId);
+  // update stats on receiving account
+  const recvStats = bigintStats(
+    (await TokenTransfer.getByToId(toAccount.id))
+      .filter((tx: TokenTransfer) => tx.token === "ACA")
+      .map((tx: TokenTransfer) => tx.amount)
+  );
+  toAccount.recvKarMean = recvStats.mean;
+  toAccount.recvKarTotal = recvStats.total;
+  toAccount.recvKarMedian = recvStats.median;
 
-  await fromAccount.save();
+  // update stats on sending account
+  const sentStats = bigintStats(
+    (await TokenTransfer.getByFromId(fromAccount.id))
+      .filter((tx: TokenTransfer) => tx.token === "ACA")
+      .map((tx: TokenTransfer) => tx.amount)
+  );
+  fromAccount.sentKarMean = sentStats.mean;
+  fromAccount.sentKarTotal = sentStats.total;
+  fromAccount.sentKarMedian = sentStats.median;
+
   await toAccount.save();
+  await fromAccount.save();
+}
+
+interface BigIntStats {
+  mean: bigint;
+  total: bigint;
+  median: bigint;
+}
+
+function bigintStats(xs: Array<bigint>): BigIntStats {
+  if (xs.length === 0) {
+    return { mean: BigInt(0), total: BigInt(0), median: BigInt(0) };
+  }
+  const total = xs.reduce((acc, x) => acc + x);
+  const mean = total / BigInt(xs.length);
+  const median = xs.sort()[Math.floor(xs.length / 2)];
+  return { mean, total, median };
 }

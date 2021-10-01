@@ -1,14 +1,20 @@
 type TokenTransfer @entity {
   id: ID! #id is a required field
-  to: String!
-  from: String!
+  to: Account!
+  from: Account!
   amount: BigInt!
   token: String!
 }
 
 type Account @entity {
-  id: ID!
-  publicAddress: String! @index(unique: true)
+  id: ID! # required field -> address
   sentTransfers: [TokenTransfer!]! @derivedFrom(field: "from")
   recvTransfers: [TokenTransfer!]! @derivedFrom(field: "to")
+
+  sentKarMean: BigInt!
+  sentKarTotal: BigInt!
+  sentKarMedian: BigInt!
+  recvKarMean: BigInt!
+  recvKarTotal: BigInt!
+  recvKarMedian: BigInt!
 }
