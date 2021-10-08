@@ -1,13 +1,35 @@
-type TokenTransfer @entity {
-
+type DexSwap @entity {
   id: ID! #id is a required field
-
-  to: String!
-  
-  from: String!
-
-  amount: BigInt!
-
-  token: String!
-
+  trader: ID!
+  tokenPath: [String!]!
+  supplyAmount: BigInt!
+  targetAmount: BigInt!
+  timestamp: Date!
+  dexDay: DexDay!
 }
+
+type DexDay @entity {
+  # needed for identification/querying
+  id: ID! # format: timestamp-target-supply
+  timestamp: Date!
+  supplyToken: String!
+  targetToken: String!
+
+  # all swaps that happened on that day
+  swaps: [DexSwap!]! @derivedFrom(field: "dexDay")
+  # important: this mustn't be a required field, otherwise we will get SQL
+  # validation errors
+
+  # the actual data
+  open: BigInt!
+  high: BigInt!
+  low: BigInt!
+  close: BigInt!
+  targetVolume: BigInt!
+  supplyVolume: BigInt!
+}
+
+# TODO:
+# => how to handle "reverse swaps" -> should contribute to the same `DexDay`
+# => how to handle when a certain path has been taken? -> I cannot see amounts
+#     from the event, so I will not take them into account

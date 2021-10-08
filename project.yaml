@@ -3315,11 +3315,11 @@ network:
 dataSources:
   - name: main
     kind: substrate/Runtime
-    startBlock: 100000
+    startBlock: 1600000
     mapping:
       handlers:
-        - handler: handleCurrencyTransferEvent
+        - handler: handleDexSwapEvent
           kind: substrate/EventHandler
           filter:
-            module: currencies
-            method: Transferred
+            module: dex
+            method: Swap

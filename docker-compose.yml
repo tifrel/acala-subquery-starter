@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 services:
   postgres:
@@ -26,6 +26,7 @@ services:
     command:
       - -f=/app
       - --local
+      - --batch-size=500
 
   graphql-engine:
     image: onfinality/subql-query:latest
